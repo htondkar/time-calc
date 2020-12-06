@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CalculationPrice } from 'src/ephemeris/calculations/price';
 import { PlanetNames, Planets } from 'src/ephemeris/planetsAndNumbers';
-import { CalculateEphemeris, MovementResult } from './calculations';
+import { CalculateEphemeris } from './calculations';
 import moment from 'moment';
 
 export interface PriceRange {

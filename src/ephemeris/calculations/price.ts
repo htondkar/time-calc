@@ -1,9 +1,12 @@
-import percentage from 'calculate-percentages';
 import { NumberRulers, Planets } from 'src/ephemeris/planetsAndNumbers';
 
 export class CalculationPrice {
   calculatePercentDiff(numberA: number, numberB: number) {
-    return percentage.absoluteDifferenceBetween(numberA, numberB);
+    const min = Math.min(numberA, numberB);
+    const max = Math.max(numberA, numberB);
+
+    const ratio = Math.abs(max - min) / min;
+    return ratio * 100;
   }
 
   getRulingPlanetOfNumber(n: number): Planets[] {
@@ -16,7 +19,7 @@ export class CalculationPrice {
   }
 
   getPriceHarmonics(base: number): number[] {
-    const ratios = [0.382, 0.618, 1, 1.382, 1.5, 1.618, 2, 2.618, 3, 4];
+    const ratios = [0.382, 0.618, 1, 1.382, 1.5, 1.618, 2, 2.618];
     return ratios.map((r) => r * base);
   }
 }

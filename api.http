@@ -1,8 +1,8 @@
 @baseURL = http://localhost:3000/ephemeris
-@startDate= 2020-01-01T09:00:00.926Z
-@endDate= 2020-02-01T09:00:00.926Z
-@startPrice=100
-@endPrice=151
+@startDate= 2015-08-24T09:00:00.926Z
+@endDate= 2015-11-04T09:00:00.926Z
+@startPrice=28.56
+@endPrice=21.22
 
 GET {{baseURL}}
 

@@ -1,7 +1,11 @@
 import swisseph, { CalculationResult } from 'swisseph';
 import moment, { Moment } from 'moment';
-import { PlanetNames, Planets } from 'src/ephemeris/planetsAndNumbers';
-import { groupBy, sortBy } from 'lodash';
+import {
+  planetDecimalPointCorrectionMultiplier,
+  PlanetNames,
+  Planets,
+} from 'src/ephemeris/planetsAndNumbers';
+import { groupBy } from 'lodash';
 
 export interface MovementResult {
   date: string;
@@ -16,10 +20,13 @@ export class CalculateEphemeris {
     startDate: Date,
   ) {
     const results: Record<string, MovementResult[]> = {};
-    const biggestHarmonic = Math.max(...harmonics);
 
     for (let index = 0; index < planets.length; index++) {
       const planet = planets[index];
+      const multiplier = planetDecimalPointCorrectionMultiplier[planet];
+
+      const harmonicsForThisPlanet = harmonics.map((n) => multiplier * n);
+      const biggestHarmonic = Math.max(...harmonicsForThisPlanet);
 
       let movement = 0;
       const baseDate = moment(startDate);
@@ -47,7 +54,7 @@ export class CalculateEphemeris {
           movement += diff;
         }
 
-        harmonics.forEach((harmonic) => {
+        harmonicsForThisPlanet.forEach((harmonic) => {
           if (this.isSameDegree(harmonic, movement, planet)) {
             if (!results[PlanetNames[planet]]) {
               results[PlanetNames[planet]] = [];

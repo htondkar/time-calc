@@ -41,3 +41,21 @@ export const NumberRulers = {
   '8': Planets.SATURN,
   '9': Planets.MARS,
 };
+
+export const planetDecimalPointCorrectionMultiplier: Record<
+  Planets,
+  0.1 | 1 | 10 | 100
+> = {
+  [Planets.SUN]: 1,
+  [Planets.MOON]: 100,
+  [Planets.MERCURY]: 10,
+  [Planets.VENUS]: 1,
+  [Planets.MARS]: 1,
+  [Planets.JUPITER]: 1,
+  [Planets.SATURN]: 0.1,
+  // [Planets.URANUS]: "uranus",
+  // [Planets.NEPTUNE]: "neptune",
+  // [Planets.PLUTO]: "pluto",
+  [Planets.RAHU]: 0.1,
+  [Planets.KETU]: 0.1,
+};
