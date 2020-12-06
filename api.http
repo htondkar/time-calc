@@ -1,0 +1,21 @@
+@baseURL = http://localhost:3000/ephemeris
+@startDate= 2015-08-24T09:00:00.926Z
+@endDate= 2015-11-04T09:00:00.926Z
+@startPrice=28.56
+@endPrice=21.22
+
+GET {{baseURL}}
+
+###
+
+POST {{baseURL}}/price-range HTTP/1.1
+Content-Type: application/json
+
+{
+  "startDate":"{{startDate}}",
+  "endDate": "{{endDate}}",
+  "startPrice":"{{startPrice}}",
+  "endPrice":"{{endPrice}}"
+}
+
+###
