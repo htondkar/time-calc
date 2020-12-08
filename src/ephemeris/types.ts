@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsIn,
   IsArray,
+  IsBoolean,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { Planets } from 'src/ephemeris/planetsAndNumbers';
@@ -26,4 +27,8 @@ export class PriceRangeBasedCalcsDTO {
   @IsOptional()
   @IsArray()
   planets?: (keyof Planets)[];
+
+  @IsOptional()
+  @IsBoolean()
+  movePlanetsFromStartOfTheRange?: boolean;
 }

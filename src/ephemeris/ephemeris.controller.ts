@@ -31,6 +31,7 @@ export class EphemerisController {
         ?.map((p) => p.toUpperCase())
         ?.filter((p) => Object.keys(Planets).includes(p))
         ?.map((p) => Planets[p]),
+      body.movePlanetsFromStartOfTheRange,
     );
   }
 }

@@ -25,6 +25,7 @@ export class EphemerisService {
     planetsToFollow: Planets[] = this.priceCalculator.getRulingPlanetOfNumber(
       priceRange.endPrice,
     ),
+    movePlanetsFromStartOfTheRange = false,
   ) {
     const pricePercentDiff = this.priceCalculator.calculatePercentDiff(
       priceRange.startPrice,
@@ -36,7 +37,9 @@ export class EphemerisService {
     const projectedTimes = await this.projectTime(
       pricePercentDiff,
       rulingPlanetsOfTheRange,
-      new Date(priceRange.endDate),
+      movePlanetsFromStartOfTheRange
+        ? new Date(priceRange.startDate)
+        : new Date(priceRange.endDate),
     );
 
     return {
