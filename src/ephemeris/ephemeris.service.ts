@@ -20,15 +20,18 @@ export class EphemerisService {
     return this.timeCalculator.getJulianDate(moment());
   }
 
-  async projectTimeBasedOnPriceRange(priceRange: PriceRange) {
+  async projectTimeBasedOnPriceRange(
+    priceRange: PriceRange,
+    planetsToFollow: Planets[] = this.priceCalculator.getRulingPlanetOfNumber(
+      priceRange.endPrice,
+    ),
+  ) {
     const pricePercentDiff = this.priceCalculator.calculatePercentDiff(
       priceRange.startPrice,
       priceRange.endPrice,
     );
 
-    const rulingPlanetsOfTheRange = this.priceCalculator.getRulingPlanetOfNumber(
-      priceRange.endPrice,
-    );
+    const rulingPlanetsOfTheRange: Planets[] = planetsToFollow;
 
     const projectedTimes = await this.projectTime(
       pricePercentDiff,

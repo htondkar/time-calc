@@ -1,5 +1,12 @@
-import { IsDateString, IsNumber } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  IsIn,
+  IsArray,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { Planets } from 'src/ephemeris/planetsAndNumbers';
 
 export class PriceRangeBasedCalcsDTO {
   @IsDateString()
@@ -15,4 +22,8 @@ export class PriceRangeBasedCalcsDTO {
   @Type(() => Number)
   @IsNumber({ allowNaN: false })
   endPrice: number;
+
+  @IsOptional()
+  @IsArray()
+  planets?: (keyof Planets)[];
 }

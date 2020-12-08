@@ -1,8 +1,10 @@
 @baseURL = http://localhost:3000/ephemeris
 @startDate= 2015-08-24T09:00:00.926Z
 @endDate= 2015-11-04T09:00:00.926Z
-@startPrice=28.56
-@endPrice=21.22
+@startPrice=5
+@endPrice=10
+
+@samplePlanets=["sun", "MOON"]
 
 GET {{baseURL}}
 
@@ -15,7 +17,8 @@ Content-Type: application/json
   "startDate":"{{startDate}}",
   "endDate": "{{endDate}}",
   "startPrice":"{{startPrice}}",
-  "endPrice":"{{endPrice}}"
+  "endPrice":"{{endPrice}}",
+  "planets": {{samplePlanets}}
 }
 
 ###
