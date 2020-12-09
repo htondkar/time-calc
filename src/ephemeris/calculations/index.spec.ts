@@ -17,7 +17,7 @@ describe('Time calculator', () => {
   });
 
   it('should be able to determine close enough degrees', () => {
-    expect(calc.isSameDegree(90, 91, Planets.SUN)).toBe(true);
+    expect(calc.isSameDegree(90, 90.5, Planets.MARS)).toBe(true);
   });
 
   it('should be able to determine close enough degrees', () => {

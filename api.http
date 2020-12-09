@@ -2,7 +2,7 @@
 @startDate= 2015-01-24T09:00:00.926Z
 @endDate= 2015-11-04T09:00:00.926Z
 @startPrice=5
-@endPrice=7.5
+@endPrice=7
 
 @samplePlanets=["sun", "moon"]
 
@@ -10,7 +10,19 @@ GET {{baseURL}}
 
 ###
 
-POST {{baseURL}}/price-range HTTP/1.1
+POST {{baseURL}}/price-range
+Content-Type: application/json
+
+{
+  "startDate":"{{startDate}}",
+  "endDate": "{{endDate}}",
+  "startPrice":"{{startPrice}}",
+  "endPrice":"{{endPrice}}"
+}
+
+###
+
+POST {{baseURL}}/price-range
 Content-Type: application/json
 
 {
