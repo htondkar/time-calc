@@ -1,8 +1,8 @@
-@baseURL = http://localhost:3000/ephemeris
-@startDate= 2015-01-24T09:00:00.926Z
-@endDate= 2015-11-04T09:00:00.926Z
-@startPrice=5
-@endPrice=7
+@baseURL = http://localhost:3000
+@startDate=2019-12-27T09:00:00.926Z
+@endDate= 2020-03-19T09:00:00.926Z
+@startPrice=33.63
+@endPrice=39.34
 
 @samplePlanets=["sun", "moon"]
 
@@ -10,19 +10,20 @@ GET {{baseURL}}
 
 ###
 
-POST {{baseURL}}/price-range
+POST {{baseURL}}/ephemeris/move-planets-by-price-range
 Content-Type: application/json
 
 {
   "startDate":"{{startDate}}",
   "endDate": "{{endDate}}",
   "startPrice":"{{startPrice}}",
-  "endPrice":"{{endPrice}}"
+  "endPrice":"{{endPrice}}",
+  "movePlanetsFromStartOfTheRange": false
 }
 
 ###
 
-POST {{baseURL}}/price-range
+POST {{baseURL}}/ephemeris/move-planets-by-price-range
 Content-Type: application/json
 
 {
@@ -32,6 +33,16 @@ Content-Type: application/json
   "endPrice":"{{endPrice}}",
   "planets": {{samplePlanets}},
   "movePlanetsFromStartOfTheRange": false
+}
+
+###
+
+POST {{baseURL}}/price/project-time-with-sq9
+Content-Type: application/json
+
+{
+  "startPrice":"{{startPrice}}",
+  "endPrice":"{{endPrice}}"
 }
 
 ###

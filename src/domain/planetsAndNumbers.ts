@@ -30,6 +30,10 @@ export const PlanetNames: Record<Planets, string> = {
   [Planets.KETU]: 'ketu',
 };
 
+export function planetCodeToPlanetName(p: Planets) {
+  return PlanetNames[p];
+}
+
 export const NumberRulers = {
   '1': Planets.SUN,
   '2': Planets.MOON,
@@ -44,7 +48,7 @@ export const NumberRulers = {
 
 export const planetDecimalPointCorrectionMultiplier: Record<
   Planets,
-  0.1 | 1 | 10 | 100
+  1 | 10 | 100
 > = {
   [Planets.SUN]: 1,
   [Planets.MOON]: 100,
@@ -52,10 +56,10 @@ export const planetDecimalPointCorrectionMultiplier: Record<
   [Planets.VENUS]: 1,
   [Planets.MARS]: 1,
   [Planets.JUPITER]: 1,
-  [Planets.SATURN]: 0.1,
+  [Planets.SATURN]: 1,
   // [Planets.URANUS]: "uranus",
   // [Planets.NEPTUNE]: "neptune",
   // [Planets.PLUTO]: "pluto",
-  [Planets.RAHU]: 0.1,
-  [Planets.KETU]: 0.1,
+  [Planets.RAHU]: 1,
+  [Planets.KETU]: 1,
 };

@@ -1,4 +1,4 @@
-import { Planets } from '../planetsAndNumbers';
+import { Planets } from '../../domain/planetsAndNumbers';
 import { CalculateEphemeris } from './index';
 
 let calc = new CalculateEphemeris();

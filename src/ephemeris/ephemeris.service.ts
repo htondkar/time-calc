@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CalculationPrice } from 'src/ephemeris/calculations/price';
-import { PlanetNames, Planets } from 'src/ephemeris/planetsAndNumbers';
+import { planetCodeToPlanetName, Planets } from '../domain/planetsAndNumbers';
 import { CalculateEphemeris } from './calculations';
 import moment from 'moment';
+import { uniq } from 'lodash';
+import { PriceService } from '../price/price.service';
 
 export interface PriceRange {
   startDate: string;
@@ -14,7 +15,8 @@ export interface PriceRange {
 @Injectable()
 export class EphemerisService {
   private timeCalculator = new CalculateEphemeris();
-  private priceCalculator = new CalculationPrice();
+
+  constructor(private readonly priceService: PriceService) {}
 
   getTodaysEphemeris() {
     return this.timeCalculator.getJulianDate(moment());
@@ -22,41 +24,54 @@ export class EphemerisService {
 
   async projectTimeBasedOnPriceRange(
     priceRange: PriceRange,
-    planetsToFollow: Planets[] = this.priceCalculator.getRulingPlanetOfNumber(
-      priceRange.endPrice,
-    ),
+    planetsToStudy?: Planets[],
     movePlanetsFromStartOfTheRange = false,
+    ratios?: number[],
   ) {
-    const pricePercentDiff = this.priceCalculator.calculatePercentDiff(
+    const pricePercentDiff = this.priceService.calculatePercentDiff(
       priceRange.startPrice,
       priceRange.endPrice,
     );
 
-    const rulingPlanetsOfTheRange: Planets[] = planetsToFollow;
+    const { referenceDate, referencePrice } = this.getReferencePoint(
+      movePlanetsFromStartOfTheRange,
+      priceRange,
+    );
 
-    const projectedTimes = await this.projectTime(
+    const rulingPlanetsOfTheRange: Planets[] = planetsToStudy
+      ? uniq(planetsToStudy)
+      : this.priceService.getRulingPlanetOfNumber(referencePrice);
+
+    const harmonics = this.priceService.getPriceHarmonics(
       pricePercentDiff,
+      ratios,
+    );
+
+    const projectedTimes = await this.timeCalculator.movePlanetByDegree(
       rulingPlanetsOfTheRange,
-      movePlanetsFromStartOfTheRange
-        ? new Date(priceRange.startDate)
-        : new Date(priceRange.endDate),
+      harmonics,
+      referenceDate,
     );
 
     return {
       pricePercentDiff,
-      rulingPlanetsOfTheRange: rulingPlanetsOfTheRange.map(
-        (p) => PlanetNames[p],
-      ),
+      rulingPlanets: rulingPlanetsOfTheRange.map(planetCodeToPlanetName),
       projectedTimes,
     };
   }
 
-  projectTime(baseNumber: number, rulingPlanets: Planets[], startDate: Date) {
-    const harmonics = this.priceCalculator.getPriceHarmonics(baseNumber);
-    return this.timeCalculator.movePlanetByDegree(
-      rulingPlanets,
-      harmonics,
-      startDate,
-    );
+  private getReferencePoint(
+    movePlanetsFromStartOfTheRange: boolean,
+    priceRange: PriceRange,
+  ) {
+    return {
+      referenceDate: movePlanetsFromStartOfTheRange
+        ? new Date(priceRange.startDate)
+        : new Date(priceRange.endDate),
+
+      referencePrice: movePlanetsFromStartOfTheRange
+        ? priceRange.startPrice
+        : priceRange.endPrice,
+    };
   }
 }

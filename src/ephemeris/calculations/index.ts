@@ -4,8 +4,9 @@ import {
   planetDecimalPointCorrectionMultiplier,
   PlanetNames,
   Planets,
-} from 'src/ephemeris/planetsAndNumbers';
+} from '../../domain/planetsAndNumbers';
 import { groupBy } from 'lodash';
+import { leewayFactor, planetOrbs } from 'src/ephemeris/calculations/config';
 
 export interface MovementResult {
   date: string;
@@ -22,14 +23,14 @@ export class CalculateEphemeris {
     const results: Record<string, MovementResult[]> = {};
 
     for (let index = 0; index < planets.length; index++) {
+      let movement = 0;
       const planet = planets[index];
+      const baseDate = moment(startDate);
       const multiplier = planetDecimalPointCorrectionMultiplier[planet];
 
       const harmonicsForThisPlanet = harmonics.map((n) => multiplier * n);
       const biggestHarmonic = Math.max(...harmonicsForThisPlanet);
 
-      let movement = 0;
-      const baseDate = moment(startDate);
       let currentPositionOfPlanet = await this.getPlanetPosition(
         planet,
         baseDate,
@@ -38,21 +39,14 @@ export class CalculateEphemeris {
       while (!this.isSameDegree(biggestHarmonic, movement, planet)) {
         baseDate.add(1, 'day');
 
-        // console.group('Moved');
-        // console.log(baseDate.toString());
-
         const newPosition = await this.getPlanetPosition(planet, baseDate);
 
-        const diff = Math.abs(
-          newPosition.longitude - currentPositionOfPlanet.longitude,
+        const diff = this.calculateMovement(
+          newPosition,
+          currentPositionOfPlanet,
         );
 
-        if (diff >= 330) {
-          // detect when planet goes to 0 degrees from 359
-          movement += Math.abs(diff - 360);
-        } else {
-          movement += diff;
-        }
+        movement = this.applyDiffToMovement(diff, movement);
 
         harmonicsForThisPlanet.forEach((harmonic) => {
           if (this.isSameDegree(harmonic, movement, planet)) {
@@ -72,6 +66,28 @@ export class CalculateEphemeris {
       }
     }
 
+    return this.formatResult(results);
+  }
+
+  private applyDiffToMovement(diff: number, movement: number) {
+    if (diff >= 330) {
+      // detect when planet goes to 0 degrees from 359
+      movement += Math.abs(diff - 360);
+    } else {
+      movement += diff;
+    }
+
+    return movement;
+  }
+
+  private calculateMovement(
+    newPosition: CalculationResult,
+    currentPositionOfPlanet: CalculationResult,
+  ) {
+    return Math.abs(newPosition.longitude - currentPositionOfPlanet.longitude);
+  }
+
+  private formatResult(results: Record<string, MovementResult[]>) {
     return Object.keys(results).reduce((acc, planet) => {
       const groupedByTarget = groupBy(results[planet], 'target');
       acc[planet] = Object.keys(groupedByTarget).reduce((acc, target) => {
@@ -86,24 +102,7 @@ export class CalculateEphemeris {
     }, {});
   }
 
-  orbs: Record<Planets, number> = {
-    [Planets.SUN]: 365.2 / 365.2,
-    [Planets.MOON]: 365.2 / 27.3,
-    [Planets.MERCURY]: 365.2 / 88,
-    [Planets.VENUS]: 365.2 / 224.7,
-    [Planets.MARS]: 365.2 / 0.6,
-    [Planets.JUPITER]: 365.2 / 0.1,
-    [Planets.SATURN]: 365.2 / 0.06,
-    // [Planets.URANUS]: 365.2 / 30589,
-    // [Planets.NEPTUNE]: 365.2 / 59800,
-    // [Planets.PLUTO]: 365.2 / 90560,
-    [Planets.RAHU]: 0.15,
-    [Planets.KETU]: 0.15,
-  };
-
-  leewayFactor = 1.1;
-
-  isSameDegree(
+  private isSameDegree(
     exactDegree: number,
     movement: number,
     planet: Planets,
@@ -117,7 +116,7 @@ export class CalculateEphemeris {
     }
 
     const diff = Math.abs(exactDegree - movement);
-    const threshold = this.orbs[planet] * this.leewayFactor;
+    const threshold = planetOrbs[planet] * leewayFactor;
 
     return diff <= threshold;
   }
@@ -146,7 +145,7 @@ export class CalculateEphemeris {
     };
   }
 
-  async getPlanetPosition(planetCode: number, date: Moment) {
+  private async getPlanetPosition(planetCode: number, date: Moment) {
     const julianDate = await this.getJulianDate(date);
     const FLAG = swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH;
     return new Promise<CalculationResult>((resolve) => {

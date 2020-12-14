@@ -2,27 +2,18 @@ import {
   IsDateString,
   IsNumber,
   IsOptional,
-  IsIn,
   IsArray,
   IsBoolean,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-import { Planets } from 'src/ephemeris/planetsAndNumbers';
+import { Planets } from '../domain/planetsAndNumbers';
+import { PriceRangeDTO } from './PriceRange.dto';
 
-export class PriceRangeBasedCalcsDTO {
+export class PriceAndDateRangeBasedCalcsDTO extends PriceRangeDTO {
   @IsDateString()
   startDate: string;
 
   @IsDateString()
   endDate: string;
-
-  @Type(() => Number)
-  @IsNumber({ allowNaN: false })
-  startPrice: number;
-
-  @Type(() => Number)
-  @IsNumber({ allowNaN: false })
-  endPrice: number;
 
   @IsOptional()
   @IsArray()
@@ -31,4 +22,9 @@ export class PriceRangeBasedCalcsDTO {
   @IsOptional()
   @IsBoolean()
   movePlanetsFromStartOfTheRange?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
+  ratios?: number[];
 }
