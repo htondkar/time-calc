@@ -102,7 +102,7 @@ export class CalculateEphemeris {
     }, {});
   }
 
-  private isSameDegree(
+  isSameDegree(
     exactDegree: number,
     movement: number,
     planet: Planets,

@@ -9,7 +9,7 @@ beforeEach(() => {
 
 describe('Time calculator', () => {
   it('should be able to determine close enough degrees', () => {
-    expect(calc.isSameDegree(90, 95, Planets.MOON)).toBe(true);
+    expect(calc.isSameDegree(90, 85, Planets.MOON)).toBe(true);
   });
 
   it('should be able to determine close enough degrees', () => {
@@ -17,7 +17,7 @@ describe('Time calculator', () => {
   });
 
   it('should be able to determine close enough degrees', () => {
-    expect(calc.isSameDegree(90, 90.5, Planets.MARS)).toBe(true);
+    expect(calc.isSameDegree(90, 89.5, Planets.MARS)).toBe(true);
   });
 
   it('should be able to determine close enough degrees', () => {
