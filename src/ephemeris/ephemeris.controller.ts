@@ -7,8 +7,9 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { EphemerisService } from './ephemeris.service';
-import { PriceAndDateRangeBasedCalcsDTO } from '../dto/PriceAndDateRangeBasedCalcs.dto copy';
-import { Planets } from 'src/domain/planetsAndNumbers';
+import { PriceAndDateRangeBasedCalcsDTO } from '../dto/PriceAndDateRangeBasedCalcs.dto';
+import { Planets } from '../domain/planetsAndNumbers';
+import { DateRangeDTO } from '../dto/dateRange.dto';
 
 @Controller('ephemeris')
 export class EphemerisController {
@@ -33,7 +34,19 @@ export class EphemerisController {
     );
   }
 
-  private resolveStudiedPlanets(body: PriceAndDateRangeBasedCalcsDTO) {
+  @Post('/move-planets-by-date-range')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async movePlanetsByDateRange(@Body() body: DateRangeDTO) {
+    const result = await this.ephemerisService.movePlanetsBetweenDates(
+      body.startDate,
+      body.endDate,
+      this.resolveStudiedPlanets(body),
+    );
+
+    return result;
+  }
+
+  private resolveStudiedPlanets(body: { planets?: string[] }): number[] {
     return (
       body.planets
         ?.map((p) => p.toUpperCase())

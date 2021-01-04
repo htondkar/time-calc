@@ -6,7 +6,7 @@ import {
   Planets,
 } from '../../domain/planetsAndNumbers';
 import { groupBy } from 'lodash';
-import { leewayFactor, planetOrbs } from 'src/ephemeris/calculations/config';
+import { leewayFactor, planetOrbs } from './config';
 
 export interface MovementResult {
   date: string;
@@ -102,6 +102,59 @@ export class CalculateEphemeris {
     }, {});
   }
 
+  public async movePlanetBetweenDates(
+    planets: number[],
+    dates: { startDate: Date; endDate: Date },
+  ) {
+    const startMoment = moment(dates.startDate);
+    const endMoment = moment(dates.endDate);
+    const days = Math.abs(startMoment.diff(endMoment, 'days'));
+
+    const results: Record<
+      string,
+      Record<Planets, number> & {
+        average: { moved: number; longitude: number };
+      }
+    > = {};
+
+    let lastAveragePoint = calculateAverage(
+      Object.values(await this.getPlanetPositions(planets, startMoment)),
+    );
+
+    let movement = 0;
+
+    for (let index = 0; index < days; index++) {
+      const planetsLongitudes = await this.getPlanetPositions(
+        planets,
+        startMoment,
+      );
+
+      const dateLabel = startMoment.toISOString();
+
+      const averageLongitude = calculateAverage(
+        Object.values(planetsLongitudes),
+      );
+
+      let averagePointMovement = Math.abs(lastAveragePoint - averageLongitude);
+
+      if (averagePointMovement > 300) {
+        averagePointMovement = 360 - averagePointMovement;
+      }
+
+      movement += averagePointMovement;
+
+      results[dateLabel] = {
+        average: { longitude: averageLongitude, moved: movement },
+        ...planetsLongitudes,
+      };
+
+      startMoment.add(1, 'day');
+      lastAveragePoint = averageLongitude;
+    }
+
+    return results;
+  }
+
   isSameDegree(
     exactDegree: number,
     movement: number,
@@ -147,9 +200,32 @@ export class CalculateEphemeris {
 
   private async getPlanetPosition(planetCode: number, date: Moment) {
     const julianDate = await this.getJulianDate(date);
-    const FLAG = swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH;
+    const FLAG =
+      swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH | swisseph.SEFLG_HELCTR;
     return new Promise<CalculationResult>((resolve) => {
       swisseph.swe_calc_ut(julianDate, planetCode, FLAG, resolve);
     });
   }
+
+  async getPlanetPositions(planetCodes: number[], date: Moment) {
+    const results: Record<Planets, number> = {};
+
+    for (let index = 0; index < planetCodes.length; index++) {
+      const planetCode = planetCodes[index];
+      const julianDate = await this.getJulianDate(date);
+      const FLAG =
+        swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH | swisseph.SEFLG_HELCTR;
+      const location = await new Promise<CalculationResult>((resolve) => {
+        swisseph.swe_calc_ut(julianDate, planetCode, FLAG, resolve);
+      });
+
+      results[planetCode] = location.longitude;
+    }
+
+    return results;
+  }
+}
+
+function calculateAverage(nums: number[]) {
+  return nums.reduce((acc, current) => acc + current, 0) / nums.length;
 }

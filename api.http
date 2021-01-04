@@ -1,10 +1,10 @@
 @baseURL = http://localhost:3000
-@startDate=2019-12-27T09:00:00.926Z
-@endDate= 2020-03-19T09:00:00.926Z
+@startDate=2019-01-03T09:00:00.926Z
+@endDate= 2020-12-20T09:00:00.926Z
 @startPrice=33.63
 @endPrice=39.34
 
-@samplePlanets=["sun", "moon"]
+@samplePlanets=["mercury", "jupiter"]
 
 GET {{baseURL}}
 
@@ -43,6 +43,17 @@ Content-Type: application/json
 {
   "startPrice":"{{startPrice}}",
   "endPrice":"{{endPrice}}"
+}
+
+###
+
+POST {{baseURL}}/ephemeris/move-planets-by-date-range
+Content-Type: application/json
+
+{
+  "startDate":"{{startDate}}",
+  "endDate":"{{endDate}}",
+  "planets": {{samplePlanets}}
 }
 
 ###

@@ -60,6 +60,13 @@ export class EphemerisService {
     };
   }
 
+  movePlanetsBetweenDates(startDate: Date, endDate: Date, planets: number[]) {
+    return this.timeCalculator.movePlanetBetweenDates(planets, {
+      startDate,
+      endDate,
+    });
+  }
+
   private getReferencePoint(
     movePlanetsFromStartOfTheRange: boolean,
     priceRange: PriceRange,
