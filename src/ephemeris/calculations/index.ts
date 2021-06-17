@@ -1,6 +1,7 @@
 import swisseph, { CalculationResult } from 'swisseph';
 import moment, { Moment } from 'moment';
 import {
+  planetCodeToPlanetName,
   planetDecimalPointCorrectionMultiplier,
   PlanetNames,
   Planets,
@@ -220,6 +221,43 @@ export class CalculateEphemeris {
       });
 
       results[planetCode] = location.longitude;
+    }
+
+    return results;
+  }
+
+  async getDailyPlanetaryLongitudes(
+    startDate: Date,
+    endDate: Date,
+    planets: number[],
+  ) {
+    const startMoment = moment(startDate);
+    const endMoment = moment(endDate);
+    const days = Math.abs(startMoment.diff(endMoment, 'days'));
+
+    const results = {};
+
+    planets.forEach((planet) => {
+      results[planetCodeToPlanetName(planet)] = [];
+    });
+
+    const FLAG =
+      swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH | swisseph.SEFLG_HELCTR;
+
+    for (let index = 0; index < days; index++) {
+      const currentDate = startMoment.clone().add(index + 1, 'day');
+      const julianDate = await this.getJulianDate(currentDate);
+
+      planets.forEach(async (planetCode) => {
+        const location = await new Promise<CalculationResult>((resolve) => {
+          swisseph.swe_calc_ut(julianDate, planetCode, FLAG, resolve);
+        });
+
+        const roundedLongitude =
+          Math.round((location.longitude + Number.EPSILON) * 100) / 100;
+
+        results[planetCodeToPlanetName(planetCode)].push(roundedLongitude);
+      });
     }
 
     return results;

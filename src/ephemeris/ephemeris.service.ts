@@ -81,4 +81,16 @@ export class EphemerisService {
         : priceRange.endPrice,
     };
   }
+
+  public getDailyPlanetaryLongitudes(
+    startDate: Date,
+    endDate: Date,
+    planets: number[],
+  ) {
+    return this.timeCalculator.getDailyPlanetaryLongitudes(
+      startDate,
+      endDate,
+      planets,
+    );
+  }
 }
