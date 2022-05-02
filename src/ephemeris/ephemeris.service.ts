@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { planetCodeToPlanetName, Planets } from '../domain/planetsAndNumbers';
-import { CalculateEphemeris } from './calculations';
+import {
+  planetCodeToPlanetName,
+  PlanetsCode,
+} from '../domain/planetsAndNumbers';
+import { CalculateEphemeris } from './calculations/CalculateEphemeris';
 import moment from 'moment';
 import { uniq } from 'lodash';
 import { PriceService } from '../price/price.service';
+import {
+  AspectStrengthCalc,
+  AspectStrengthInput,
+} from 'src/ephemeris/calculations/AspectStrengthCalc';
 
 export interface PriceRange {
   startDate: string;
@@ -15,6 +22,7 @@ export interface PriceRange {
 @Injectable()
 export class EphemerisService {
   private timeCalculator = new CalculateEphemeris();
+  private aspectCalculator = new AspectStrengthCalc();
 
   constructor(private readonly priceService: PriceService) {}
 
@@ -24,7 +32,7 @@ export class EphemerisService {
 
   async projectTimeBasedOnPriceRange(
     priceRange: PriceRange,
-    planetsToStudy?: Planets[],
+    planetsToStudy?: PlanetsCode[],
     movePlanetsFromStartOfTheRange = false,
     ratios?: number[],
   ) {
@@ -38,7 +46,7 @@ export class EphemerisService {
       priceRange,
     );
 
-    const rulingPlanetsOfTheRange: Planets[] = planetsToStudy
+    const rulingPlanetsOfTheRange: PlanetsCode[] = planetsToStudy
       ? uniq(planetsToStudy)
       : this.priceService.getRulingPlanetOfNumber(referencePrice);
 
@@ -91,6 +99,11 @@ export class EphemerisService {
       startDate,
       endDate,
       planets,
+      'Helio',
     );
+  }
+
+  public async calculateAspectStrengths(input: AspectStrengthInput) {
+    return this.aspectCalculator.calculateAspectStrength(input);
   }
 }

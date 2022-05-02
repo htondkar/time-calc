@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { NumberRulers, Planets } from '../domain/planetsAndNumbers';
+import { NumberRulers, PlanetsCode } from '../domain/planetsAndNumbers';
 import { sortedUniq, sortBy } from 'lodash';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class PriceService {
     return ratio1 <= ratio2 ? ratio1 * 100 : ratio2 * 100;
   }
 
-  getRulingPlanetOfNumber(n: number): Planets[] {
+  getRulingPlanetOfNumber(n: number): PlanetsCode[] {
     return n
       .toString()
       .split('')

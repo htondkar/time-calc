@@ -1,13 +1,13 @@
-import swisseph, { CalculationResult } from 'swisseph';
-import moment, { Moment } from 'moment';
+import { CalculationResult } from 'swisseph';
+import moment from 'moment';
 import {
-  planetCodeToPlanetName,
   planetDecimalPointCorrectionMultiplier,
   PlanetNames,
-  Planets,
+  PlanetsCode,
 } from '../../domain/planetsAndNumbers';
 import { groupBy } from 'lodash';
-import { leewayFactor, planetOrbs } from './config';
+import { MomentUtils } from 'src/ephemeris/calculations/moment.utils';
+import { BaseAstroCalc } from 'src/ephemeris/calculations/BaseAstroCalc';
 
 export interface MovementResult {
   date: string;
@@ -15,9 +15,9 @@ export interface MovementResult {
   target: number;
 }
 
-export class CalculateEphemeris {
+export class CalculateEphemeris extends BaseAstroCalc {
   public async movePlanetByDegree(
-    planets: Planets[],
+    planets: PlanetsCode[],
     harmonics: number[],
     startDate: Date,
   ) {
@@ -35,12 +35,17 @@ export class CalculateEphemeris {
       let currentPositionOfPlanet = await this.getPlanetPosition(
         planet,
         baseDate,
+        'Helio',
       );
 
       while (!this.isSameDegree(biggestHarmonic, movement, planet)) {
         baseDate.add(1, 'day');
 
-        const newPosition = await this.getPlanetPosition(planet, baseDate);
+        const newPosition = await this.getPlanetPosition(
+          planet,
+          baseDate,
+          'Helio',
+        );
 
         const diff = this.calculateMovement(
           newPosition,
@@ -109,17 +114,20 @@ export class CalculateEphemeris {
   ) {
     const startMoment = moment(dates.startDate);
     const endMoment = moment(dates.endDate);
-    const days = Math.abs(startMoment.diff(endMoment, 'days'));
+    const days = MomentUtils.diff(startMoment, endMoment, 'days');
+    const coordinates = 'Helio';
 
     const results: Record<
       string,
-      Record<Planets, number> & {
+      Record<PlanetsCode, number> & {
         average: { moved: number; longitude: number };
       }
     > = {};
 
     let lastAveragePoint = calculateAverage(
-      Object.values(await this.getPlanetPositions(planets, startMoment)),
+      Object.values(
+        await this.getPlanetPositions(planets, startMoment, coordinates),
+      ),
     );
 
     let movement = 0;
@@ -128,6 +136,7 @@ export class CalculateEphemeris {
       const planetsLongitudes = await this.getPlanetPositions(
         planets,
         startMoment,
+        coordinates,
       );
 
       const dateLabel = startMoment.toISOString();
@@ -151,113 +160,6 @@ export class CalculateEphemeris {
 
       startMoment.add(1, 'day');
       lastAveragePoint = averageLongitude;
-    }
-
-    return results;
-  }
-
-  isSameDegree(
-    exactDegree: number,
-    movement: number,
-    planet: Planets,
-  ): boolean {
-    if (Math.abs(movement - exactDegree) < 0.001) {
-      return true;
-    }
-
-    if (movement > exactDegree) {
-      return false;
-    }
-
-    const diff = Math.abs(exactDegree - movement);
-    const threshold = planetOrbs[planet] * leewayFactor;
-
-    return diff <= threshold;
-  }
-
-  public getJulianDate(moment: Moment) {
-    const { year, month, day, hour } = this.getYearMonthDayHour(moment);
-
-    return new Promise((resolve) => {
-      swisseph.swe_julday(
-        year,
-        month,
-        day,
-        hour,
-        swisseph.SE_GREG_CAL,
-        resolve,
-      );
-    });
-  }
-
-  private getYearMonthDayHour(moment: Moment) {
-    return {
-      year: moment.get('year'),
-      month: moment.get('month') + 1,
-      day: moment.get('D'),
-      hour: moment.get('hour'),
-    };
-  }
-
-  private async getPlanetPosition(planetCode: number, date: Moment) {
-    const julianDate = await this.getJulianDate(date);
-    const FLAG =
-      swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH | swisseph.SEFLG_HELCTR;
-    return new Promise<CalculationResult>((resolve) => {
-      swisseph.swe_calc_ut(julianDate, planetCode, FLAG, resolve);
-    });
-  }
-
-  async getPlanetPositions(planetCodes: number[], date: Moment) {
-    const results: Record<Planets, number> = {};
-
-    for (let index = 0; index < planetCodes.length; index++) {
-      const planetCode = planetCodes[index];
-      const julianDate = await this.getJulianDate(date);
-      const FLAG =
-        swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH | swisseph.SEFLG_HELCTR;
-      const location = await new Promise<CalculationResult>((resolve) => {
-        swisseph.swe_calc_ut(julianDate, planetCode, FLAG, resolve);
-      });
-
-      results[planetCode] = location.longitude;
-    }
-
-    return results;
-  }
-
-  async getDailyPlanetaryLongitudes(
-    startDate: Date,
-    endDate: Date,
-    planets: number[],
-  ) {
-    const startMoment = moment(startDate);
-    const endMoment = moment(endDate);
-    const days = Math.abs(startMoment.diff(endMoment, 'days'));
-
-    const results = {};
-
-    planets.forEach((planet) => {
-      results[planetCodeToPlanetName(planet)] = [];
-    });
-
-    const FLAG =
-      swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH | swisseph.SEFLG_HELCTR;
-
-    for (let index = 0; index < days; index++) {
-      const currentDate = startMoment.clone().add(index + 1, 'day');
-      const julianDate = await this.getJulianDate(currentDate);
-
-      planets.forEach(async (planetCode) => {
-        const location = await new Promise<CalculationResult>((resolve) => {
-          swisseph.swe_calc_ut(julianDate, planetCode, FLAG, resolve);
-        });
-
-        const roundedLongitude =
-          Math.round((location.longitude + Number.EPSILON) * 100) / 100;
-
-        results[planetCodeToPlanetName(planetCode)].push(roundedLongitude);
-      });
     }
 
     return results;

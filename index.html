@@ -1,0 +1,130 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"
+      integrity="sha512-QSkVNOCYLtj73J4hbmVoOV6KVZuMluZlioC+trLpewV8qMjsWqlIQvkn1KGX2StWvPMdWGBqim1xlC8krl1EKQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="./papa-parse.js"></script>
+
+    <title>Aspect Strength</title>
+
+    <style>
+      #chart-wrapper {
+        width: 96vw;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart-wrapper">
+      <canvas id="myChart"></canvas>
+    </div>
+  </body>
+
+  <script>
+    function fetchMercuryData() {
+      return fetch('http://localhost:3000/ephemeris/aspects-strength', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate: '2020-01-01T09:00:00.00Z',
+          endDate: new Date().toISOString(),
+          planet: 'mercury',
+        }),
+      })
+        .then((res) => res.json())
+        .then((aspectStrengthData) =>
+          aspectStrengthData.map(({ net, date }) => ({
+            y: net,
+            x: date,
+          })),
+        );
+    }
+
+    function fetchSunData() {
+      return fetch('http://localhost:3000/ephemeris/aspects-strength', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate: '2020-01-01T09:00:00.00Z',
+          endDate: new Date().toISOString(),
+          planet: 'sun',
+        }),
+      })
+        .then((res) => res.json())
+        .then((aspectStrengthData) =>
+          aspectStrengthData.map(({ net, date }) => ({
+            y: net,
+            x: date,
+          })),
+        );
+    }
+
+    function loadBtcDataset() {
+      return new Promise((resolve) => {
+        var data = Papa.parse('http://127.0.0.1:5500/BTCUSDT_d.csv', {
+          download: true,
+          complete(results) {
+            const rows = results.data;
+            rows.shift(); //remove first row
+
+            const dataSet = rows.map((columns) => ({
+              x: columns[1],
+              y: columns[6] / 500,
+            }));
+
+            dataSet.sort((a, b) => Date.parse(a.x) - Date.parse(b.x));
+
+            resolve(dataSet);
+          },
+        });
+      });
+    }
+
+    Promise.all([loadBtcDataset(), fetchMercuryData(), fetchSunData()]).then(
+      ([btcDataSet, mercuryAspectStrengthData, sunAspectStrengthData]) => {
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: mercuryAspectStrengthData.map(({ x }) => x),
+            datasets: [
+              {
+                label: 'BTC price',
+                data: btcDataSet.map(({ y }) => y),
+                borderColor: 'grey',
+              },
+              {
+                label: 'Mercury Aspect strength',
+                data: mercuryAspectStrengthData.map(({ y }) => y),
+                borderColor: 'green',
+              },
+              {
+                label: 'Sun Aspect strength',
+                data: sunAspectStrengthData.map(({ y }) => y),
+                borderColor: 'gold',
+              },
+              {
+                label: 'Total Aspect strength',
+                data: sunAspectStrengthData.map(
+                  ({ y }, index) => mercuryAspectStrengthData[index].y + y,
+                ),
+                borderColor: 'red',
+              },
+            ],
+          },
+          options: { scales: { y: { beginAtZero: true } } },
+        });
+      },
+    );
+  </script>
+</html>

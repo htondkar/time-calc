@@ -1,6 +1,6 @@
-import { Planets } from '../../domain/planetsAndNumbers';
+import { Planets, PlanetsCode } from '../../domain/planetsAndNumbers';
 
-export const planetOrbs: Record<Planets, number> = {
+export const planetOrbs: Record<PlanetsCode, number> = {
   [Planets.SUN]: 365.2 / 365.2,
   [Planets.MOON]: 365.2 / 27.3,
   [Planets.MERCURY]: 365.2 / 88,

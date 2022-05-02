@@ -1,21 +1,25 @@
 import swisseph from 'swisseph';
 
-export enum Planets {
-  'SUN' = swisseph.SE_SUN,
-  'MOON' = swisseph.SE_MOON,
-  'MERCURY' = swisseph.SE_MERCURY,
-  'VENUS' = swisseph.SE_VENUS,
-  'MARS' = swisseph.SE_MARS,
-  'JUPITER' = swisseph.SE_JUPITER,
-  'SATURN' = swisseph.SE_SATURN,
-  // 'URANUS' = swisseph.SE_URANUS,
-  // 'NEPTUNE' = swisseph.SE_NEPTUNE,
-  // 'PLUTO' = swisseph.SE_PLUTO,
-  'RAHU' = swisseph.SE_TRUE_NODE,
-  'KETU' = swisseph.SE_TRUE_NODE,
-}
+export const Planets = {
+  SUN: swisseph.SE_SUN,
+  MOON: swisseph.SE_MOON,
+  MERCURY: swisseph.SE_MERCURY,
+  VENUS: swisseph.SE_VENUS,
+  MARS: swisseph.SE_MARS,
+  JUPITER: swisseph.SE_JUPITER,
+  SATURN: swisseph.SE_SATURN,
+  // 'URANUS' : swisseph.SE_URANUS,
+  // 'NEPTUNE' : swisseph.SE_NEPTUNE,
+  // 'PLUTO' : swisseph.SE_PLUTO,
+  RAHU: swisseph.SE_TRUE_NODE,
+  KETU: swisseph.SE_TRUE_NODE,
+} as const;
 
-export const PlanetNames: Record<Planets, string> = {
+export type Planets = typeof Planets;
+export type PlanetsNames = keyof typeof Planets;
+export type PlanetsCode = number;
+
+export const PlanetNames: Record<PlanetsCode, Lowercase<PlanetsNames>> = {
   [Planets.SUN]: 'sun',
   [Planets.MOON]: 'moon',
   [Planets.MERCURY]: 'mercury',
@@ -30,8 +34,8 @@ export const PlanetNames: Record<Planets, string> = {
   [Planets.KETU]: 'ketu',
 };
 
-export function planetCodeToPlanetName(p: Planets) {
-  return PlanetNames[p];
+export function planetCodeToPlanetName(code: PlanetsCode) {
+  return PlanetNames[code];
 }
 
 export const NumberRulers = {
@@ -47,7 +51,7 @@ export const NumberRulers = {
 };
 
 export const planetDecimalPointCorrectionMultiplier: Record<
-  Planets,
+  PlanetsCode,
   1 | 10 | 100
 > = {
   [Planets.SUN]: 1,

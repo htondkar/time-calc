@@ -2,7 +2,7 @@ import { IsArray, IsDate, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Planets } from 'src/domain/planetsAndNumbers';
 
-export class DateRangeDTO {
+export class DateRangePlanetsDTO {
   @Type(() => Date)
   @IsDate()
   startDate: Date;
@@ -14,4 +14,16 @@ export class DateRangeDTO {
   @IsOptional()
   @IsArray()
   planets: (keyof Planets)[];
+}
+
+export class DateRangeSinglePlanetDTO {
+  @Type(() => Date)
+  @IsDate()
+  startDate: Date;
+
+  @Type(() => Date)
+  @IsDate()
+  endDate: Date;
+
+  planet: keyof Planets;
 }

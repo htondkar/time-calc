@@ -1,5 +1,5 @@
 import { Planets } from '../../domain/planetsAndNumbers';
-import { CalculateEphemeris } from './index';
+import { CalculateEphemeris } from './CalculateEphemeris';
 import moment from 'moment';
 
 let calc = new CalculateEphemeris();

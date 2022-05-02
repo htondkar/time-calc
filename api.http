@@ -68,3 +68,14 @@ Content-Type: application/json
 }
 
 ###
+
+POST {{baseURL}}/ephemeris/aspects-strength
+Content-Type: application/json
+
+{
+  "startDate":"2021-01-01T09:00:00.00Z",
+  "endDate":"2022-01-01T09:00:00.00Z",
+  "planet": "mercury"
+}
+
+###
